@@ -11,16 +11,17 @@ describe("runCozeWorkflow", () => {
   });
 
   test("posts the documented payload and returns data.output", async () => {
-    const fetchImpl = vi.fn(async () =>
-      new Response(
+    const fetchImpl = vi.fn(async (...args: Parameters<typeof fetch>) => {
+      void args;
+      return new Response(
         JSON.stringify({
           code: 0,
           msg: "Success",
           data: JSON.stringify({ output: "可以，通过增减模块调节高度。" }),
         }),
         { status: 200 },
-      ),
-    );
+      );
+    });
 
     const output = await runCozeWorkflow("可以调高度吗？", {
       token: "server-token",
@@ -47,12 +48,13 @@ describe("runCozeWorkflow", () => {
   test("reads credentials from server environment by default", async () => {
     vi.stubEnv("COZE_API_TOKEN", "environment-token");
     vi.stubEnv("COZE_WORKFLOW_ID", "7679774858637492267");
-    const fetchImpl = vi.fn(async () =>
-      new Response(
+    const fetchImpl = vi.fn(async (...args: Parameters<typeof fetch>) => {
+      void args;
+      return new Response(
         JSON.stringify({ code: 0, data: JSON.stringify({ output: "环境变量可用" }) }),
         { status: 200 },
-      ),
-    );
+      );
+    });
 
     await expect(runCozeWorkflow("question", { fetchImpl })).resolves.toBe(
       "环境变量可用",

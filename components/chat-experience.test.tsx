@@ -39,12 +39,13 @@ describe("ChatExperience", () => {
   });
 
   test("clicking a suggestion sends it and renders the real response", async () => {
-    const fetchMock = vi.fn(async () =>
-      new Response(
+    const fetchMock = vi.fn(async (...args: Parameters<typeof fetch>) => {
+      void args;
+      return new Response(
         JSON.stringify({ output: "可以通过模块组合调节高度。" }),
         { status: 200 },
-      ),
-    );
+      );
+    });
     vi.stubGlobal("fetch", fetchMock);
     const user = userEvent.setup();
     render(<ChatExperience />);

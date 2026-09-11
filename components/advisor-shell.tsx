@@ -1,4 +1,5 @@
 import { ChatCircleDots, Plus, Sparkle } from "@phosphor-icons/react";
+import Link from "next/link";
 import type { ReactNode } from "react";
 import { AdvisorHeader } from "./advisor-header";
 import styles from "./advisor.module.css";
@@ -12,12 +13,12 @@ export function AdvisorShell({ children, onReset }: AdvisorShellProps) {
   return (
     <div className={styles.shell}>
       <nav aria-label="Advisor navigation" className={styles.sidebar}>
-        <a className={styles.brand} href="/" aria-label="MomoRay home">
+        <Link className={styles.brand} href="/" aria-label="MomoRay home">
           <span className={styles.brandMark}>
             <Sparkle size={20} weight="fill" aria-hidden="true" />
           </span>
           <span>MomoRay</span>
-        </a>
+        </Link>
 
         <button className={styles.newChatButton} type="button" onClick={onReset}>
           <Plus size={18} weight="bold" aria-hidden="true" />

@@ -21,15 +21,16 @@ describe("POST /api/advisor", () => {
   test("trims input and returns the normalized workflow output", async () => {
     vi.stubEnv("COZE_API_TOKEN", "server-token");
     vi.stubEnv("COZE_WORKFLOW_ID", "7679774858637492267");
-    const fetchMock = vi.fn(async () =>
-      new Response(
+    const fetchMock = vi.fn(async (...args: Parameters<typeof fetch>) => {
+      void args;
+      return new Response(
         JSON.stringify({
           code: 0,
           data: JSON.stringify({ output: "建议先从中等高度开始。" }),
         }),
         { status: 200 },
-      ),
-    );
+      );
+    });
     vi.stubGlobal("fetch", fetchMock);
 
     const response = await POST(
