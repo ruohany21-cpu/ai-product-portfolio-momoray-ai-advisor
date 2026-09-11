@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import { test } from "vitest";
+import { expect, test } from "vitest";
 import Home from "./page";
 
 test("presents the MomoRay advisor as a live workflow demo", () => {
