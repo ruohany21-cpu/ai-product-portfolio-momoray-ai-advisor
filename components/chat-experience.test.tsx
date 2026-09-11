@@ -18,6 +18,20 @@ describe("ChatExperience", () => {
   test("renders the welcome state and all suggested prompts", () => {
     render(<ChatExperience />);
 
+    expect(
+      screen.getByRole("navigation", { name: "Advisor navigation" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("main")).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", {
+        name: "今天想了解怎样的睡眠支撑？",
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "MomoRay AI Advisor" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Agent Workflow Demo")).toBeInTheDocument();
+    expect(screen.getByText("LIVE")).toBeInTheDocument();
     expect(screen.getByText("Ask the workflow anything.")).toBeInTheDocument();
     for (const prompt of prompts) {
       expect(screen.getByRole("button", { name: prompt })).toBeInTheDocument();

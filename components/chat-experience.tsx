@@ -1,6 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { ArrowCounterClockwise } from "@phosphor-icons/react";
+import { AdvisorShell } from "./advisor-shell";
+import styles from "./advisor.module.css";
 import { MessageComposer } from "./message-composer";
 import { MessageList, type ChatMessage } from "./message-list";
 import { PromptSuggestions } from "./prompt-suggestions";
@@ -60,25 +63,38 @@ export function ChatExperience() {
   };
 
   return (
-    <section>
-      <button type="button" onClick={reset}>
-        New conversation
-      </button>
-      {messages.length === 0 ? (
-        <div>
-          <p>Ask the workflow anything.</p>
-          <PromptSuggestions disabled={pending} onSelect={send} />
+    <AdvisorShell onReset={reset}>
+      <section className={styles.experience}>
+        <button
+          className={styles.mobileReset}
+          type="button"
+          onClick={reset}
+          aria-label="Reset conversation"
+        >
+          <ArrowCounterClockwise size={18} weight="bold" aria-hidden="true" />
+        </button>
+        {messages.length === 0 ? (
+          <div className={styles.welcomeStage}>
+            <p className={styles.eyebrow}>MOMORAY PRODUCT GUIDANCE</p>
+            <h2 className={styles.heroTitle}>今天想了解怎样的睡眠支撑？</h2>
+            <p className={styles.welcomeCopy}>Ask the workflow anything.</p>
+            <PromptSuggestions disabled={pending} onSelect={send} />
+          </div>
+        ) : (
+          <div className={styles.conversation}>
+            <MessageList messages={messages} />
+          </div>
+        )}
+        <div className={styles.composerDock}>
+          <MessageComposer
+            value={draft}
+            disabled={pending}
+            onChange={setDraft}
+            onSubmit={() => void send(draft)}
+          />
         </div>
-      ) : (
-        <MessageList messages={messages} />
-      )}
-      <MessageComposer
-        value={draft}
-        disabled={pending}
-        onChange={setDraft}
-        onSubmit={() => void send(draft)}
-      />
-    </section>
+      </section>
+    </AdvisorShell>
   );
 }
 

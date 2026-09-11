@@ -1,4 +1,6 @@
+import { ArrowUp } from "@phosphor-icons/react";
 import type { FormEvent, KeyboardEvent } from "react";
+import styles from "./advisor.module.css";
 
 type MessageComposerProps = {
   value: string;
@@ -26,7 +28,7 @@ export function MessageComposer({
   };
 
   return (
-    <form onSubmit={submit}>
+    <form className={styles.composer} onSubmit={submit}>
       <textarea
         aria-label="Ask MomoRay AI Advisor"
         disabled={disabled}
@@ -37,8 +39,13 @@ export function MessageComposer({
         rows={1}
         value={value}
       />
-      <button type="submit" aria-label="Send message" disabled={disabled || !value.trim()}>
-        Send
+      <button
+        className={styles.sendButton}
+        type="submit"
+        aria-label="Send message"
+        disabled={disabled || !value.trim()}
+      >
+        <ArrowUp size={20} weight="bold" aria-hidden="true" />
       </button>
     </form>
   );

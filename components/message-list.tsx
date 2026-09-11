@@ -13,12 +13,24 @@ type MessageListProps = {
 
 export function MessageList({ messages }: MessageListProps) {
   return (
-    <div aria-live="polite">
+    <div className={styles.messageList} aria-live="polite">
       {messages.map((message) => (
-        <article key={message.id} data-role={message.role}>
+        <article
+          className={styles.message}
+          key={message.id}
+          data-role={message.role}
+          data-status={message.role === "assistant" ? message.status : undefined}
+        >
+          {message.role === "assistant" ? (
+            <span className={styles.messageIcon} aria-hidden="true">
+              <Sparkle size={16} weight="fill" />
+            </span>
+          ) : null}
           <p>{message.text}</p>
         </article>
       ))}
     </div>
   );
 }
+import { Sparkle } from "@phosphor-icons/react";
+import styles from "./advisor.module.css";
