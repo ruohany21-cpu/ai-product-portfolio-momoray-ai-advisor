@@ -46,4 +46,16 @@ No actionable P0, P1, or P2 visual differences remain. The visible differences f
 
 - P3: after deployment, capture a full-width production screenshot for the portfolio thumbnail.
 
+## Workflow duration disclosure QA
+
+- Source visual truth: `C:\Users\diana\AppData\Local\Temp\codex-clipboard-0949884f-123a-4573-a468-79bcd994c940.png`.
+- Implementation: `http://localhost:3000/`, reviewed in the Codex in-app browser in both collapsed and expanded states.
+- Normalization: the source is a focused crop of the disclosure row, so comparison was limited to hierarchy, spacing, divider weight, muted color, and chevron affordance rather than absolute viewport dimensions.
+- Real workflow evidence: submitting “给我推荐一个配置” returned a live Coze response and displayed the measured total as “用时 14 秒”.
+- Collapsed fidelity: the duration is a quiet, single-line row below the concise answer, separated by a subtle rule with a trailing chevron, matching the reference hierarchy.
+- Expanded fidelity: activating the row rotates the chevron and reveals only observable product stages: “已提交问题”, “已运行 Coze Workflow”, and “已返回精简建议”. No hidden model reasoning or fabricated chain-of-thought is presented.
+- Accessibility: the disclosure uses a native button, exposes `aria-expanded`, and changes its accessible name between “查看工作流过程” and “收起工作流过程”.
+- Responsive evidence: the compact browser viewport showed no clipping or horizontal overflow in either state.
+- Automated coverage: the duration formatter and disclosure state are covered with an 83-second simulated request, verifying “1 分 23 秒” plus expand/collapse semantics.
+
 final result: passed

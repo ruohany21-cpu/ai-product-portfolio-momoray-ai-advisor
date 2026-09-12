@@ -24,6 +24,7 @@ export function ChatExperience() {
     const userId = crypto.randomUUID();
     const assistantId = crypto.randomUUID();
     const controller = new AbortController();
+    const startedAt = Date.now();
     activeRequest.current = controller;
     setPending(true);
     setDraft("");
@@ -50,7 +51,13 @@ export function ChatExperience() {
         throw new Error("Invalid advisor response");
       }
       setMessages((current) =>
-        replaceAssistant(current, assistantId, payload.output, "complete"),
+        replaceAssistant(
+          current,
+          assistantId,
+          payload.output,
+          "complete",
+          Date.now() - startedAt,
+        ),
       );
     } catch {
       setMessages((current) =>
@@ -131,8 +138,11 @@ function replaceAssistant(
   id: string,
   text: string,
   status: "complete" | "error" | "cancelled",
+  durationMs?: number,
 ) {
   return messages.map((message): ChatMessage =>
-    message.id === id ? { id, role: "assistant", status, text } : message,
+    message.id === id
+      ? { id, role: "assistant", status, text, durationMs }
+      : message,
   );
 }

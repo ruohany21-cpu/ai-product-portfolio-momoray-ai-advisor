@@ -1,4 +1,4 @@
-import { Sparkle, X } from "@phosphor-icons/react";
+import { CaretRight, Sparkle, X } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
 import styles from "./advisor.module.css";
 
@@ -9,6 +9,7 @@ export type ChatMessage =
       role: "assistant";
       status: "loading" | "complete" | "error" | "cancelled";
       text: string;
+      durationMs?: number;
     };
 
 type MessageListProps = {
@@ -34,7 +35,10 @@ export function MessageList({ messages, onCancel }: MessageListProps) {
               {message.status === "loading" ? (
                 <WorkflowProgress onCancel={onCancel} />
               ) : message.status === "complete" ? (
-                <AssistantReply text={message.text} />
+                <AssistantReply
+                  text={message.text}
+                  durationMs={message.durationMs ?? 0}
+                />
               ) : (
                 <p className={styles.messageText}>{message.text}</p>
               )}
@@ -48,7 +52,7 @@ export function MessageList({ messages, onCancel }: MessageListProps) {
   );
 }
 
-function AssistantReply({ text }: { text: string }) {
+function AssistantReply({ text, durationMs }: { text: string; durationMs: number }) {
   const [expanded, setExpanded] = useState(false);
   const preview = concisePreview(text);
   const hasDetails = preview !== text;
@@ -64,6 +68,36 @@ function AssistantReply({ text }: { text: string }) {
         >
           {expanded ? "收起完整建议" : "查看完整建议"}
         </button>
+      ) : null}
+      <WorkflowDisclosure durationMs={durationMs} />
+    </div>
+  );
+}
+
+function WorkflowDisclosure({ durationMs }: { durationMs: number }) {
+  const [expanded, setExpanded] = useState(false);
+  const duration = formatDuration(durationMs);
+
+  return (
+    <div className={styles.workflowDisclosure}>
+      <button
+        type="button"
+        aria-expanded={expanded}
+        aria-label={`${expanded ? "收起" : "查看"}工作流过程，用时 ${duration}`}
+        onClick={() => setExpanded((current) => !current)}
+      >
+        <span>用时 {duration}</span>
+        <CaretRight size={15} weight="bold" aria-hidden="true" />
+      </button>
+      {expanded ? (
+        <div className={styles.workflowDetails}>
+          <p>工作流过程</p>
+          <ol>
+            <li>已提交问题</li>
+            <li>已运行 Coze Workflow</li>
+            <li>已返回精简建议</li>
+          </ol>
+        </div>
       ) : null}
     </div>
   );
@@ -117,4 +151,12 @@ function concisePreview(text: string) {
   return sentenceEnd >= 40
     ? excerpt.slice(0, sentenceEnd + 1)
     : `${excerpt.trimEnd()}…`;
+}
+
+function formatDuration(durationMs: number) {
+  const totalSeconds = Math.max(1, Math.round(durationMs / 1_000));
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+
+  return minutes > 0 ? `${minutes} 分 ${seconds} 秒` : `${seconds} 秒`;
 }

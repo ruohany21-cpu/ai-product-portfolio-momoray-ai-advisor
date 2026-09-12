@@ -314,6 +314,53 @@
   cursor: pointer;
 }
 
+.workflowDisclosure {
+  margin-top: 2px;
+  border-top: 1px solid var(--border);
+}
+
+.workflowDisclosure > button {
+  width: 100%;
+  min-height: 36px;
+  padding: 9px 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 0;
+  color: var(--text-soft);
+  background: transparent;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.workflowDisclosure > button svg {
+  transition: transform 150ms ease;
+}
+
+.workflowDisclosure > button[aria-expanded="true"] svg {
+  transform: rotate(90deg);
+}
+
+.workflowDetails {
+  padding: 8px 0 2px;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.workflowDetails p {
+  margin: 0 0 7px;
+  color: var(--text);
+  font-weight: 650;
+}
+
+.workflowDetails ol {
+  margin: 0;
+  padding-left: 19px;
+  display: grid;
+  gap: 5px;
+}
+
 .workflowProgress {
   display: grid;
   gap: 10px;

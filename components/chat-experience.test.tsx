@@ -168,6 +168,47 @@ describe("ChatExperience", () => {
     ).toBeEnabled();
   });
 
+  test("shows the real workflow duration in a collapsible process row", async () => {
+    vi.useFakeTimers();
+    let resolveRequest!: (response: Response) => void;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(
+        () =>
+          new Promise<Response>((resolve) => {
+            resolveRequest = resolve;
+          }),
+      ),
+    );
+    render(<ChatExperience />);
+
+    fireEvent.click(screen.getByRole("button", { name: "给我推荐一个配置" }));
+    act(() => vi.advanceTimersByTime(83_000));
+    resolveRequest(
+      new Response(JSON.stringify({ output: "建议先从基础高度开始。" }), {
+        status: 200,
+      }),
+    );
+    await act(async () => Promise.resolve());
+
+    const processButton = screen.getByRole("button", {
+      name: "查看工作流过程，用时 1 分 23 秒",
+    });
+    expect(processButton).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByText("已提交问题")).not.toBeInTheDocument();
+
+    fireEvent.click(processButton);
+
+    expect(screen.getByText("已提交问题")).toBeInTheDocument();
+    expect(screen.getByText("已运行 Coze Workflow")).toBeInTheDocument();
+    expect(screen.getByText("已返回精简建议")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", {
+        name: "收起工作流过程，用时 1 分 23 秒",
+      }),
+    ).toHaveAttribute("aria-expanded", "true");
+  });
+
   test("does not submit empty input", async () => {
     const fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);
