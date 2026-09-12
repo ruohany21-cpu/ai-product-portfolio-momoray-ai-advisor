@@ -25,7 +25,7 @@ describe("ChatExperience", () => {
     expect(screen.getByRole("main")).toBeInTheDocument();
     expect(
       screen.getByRole("heading", {
-        name: "今天想了解怎样的睡眠支撑？",
+        name: "你的 MomoRay AI 产品顾问",
       }),
     ).toBeInTheDocument();
     expect(

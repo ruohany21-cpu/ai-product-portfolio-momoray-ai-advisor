@@ -102,7 +102,7 @@ export function ChatExperience() {
         {messages.length === 0 ? (
           <div className={styles.welcomeStage}>
             <p className={styles.eyebrow}>MOMORAY PRODUCT GUIDANCE</p>
-            <h2 className={styles.heroTitle}>今天想了解怎样的睡眠支撑？</h2>
+            <h2 className={styles.heroTitle}>你的 MomoRay AI 产品顾问</h2>
             <p className={styles.welcomeCopy}>Ask the workflow anything.</p>
             <PromptSuggestions disabled={pending} onSelect={send} />
           </div>
