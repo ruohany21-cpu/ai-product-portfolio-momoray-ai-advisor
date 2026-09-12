@@ -1,7 +1,12 @@
 /node_modules
 /.next
+/.vinext
+/dist
+/.wrangler
+/.sites-runtime
 /coverage
 .env*
 !.env.example
 npm-debug.log*
 *.tsbuildinfo
+/work/sites-vinext-adapter

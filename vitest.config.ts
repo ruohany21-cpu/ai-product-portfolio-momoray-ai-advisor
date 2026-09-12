@@ -6,6 +6,7 @@ export default defineConfig({
   resolve: { alias: { "@": import.meta.dirname } },
   test: {
     environment: "jsdom",
+    exclude: ["work/**", "node_modules/**", "dist/**"],
     globals: true,
     setupFiles: ["./vitest.setup.ts"],
   },
