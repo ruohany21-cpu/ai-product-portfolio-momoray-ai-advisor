@@ -9,4 +9,5 @@
 !.env.example
 npm-debug.log*
 *.tsbuildinfo
+next-env.d.ts
 /work/sites-vinext-adapter
