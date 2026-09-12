@@ -200,6 +200,7 @@ describe("ChatExperience", () => {
       processButton.compareDocumentPosition(reply) &
         Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
+    expect(reply.parentElement).not.toContainElement(processButton);
     expect(screen.queryByText("已提交问题")).not.toBeInTheDocument();
 
     fireEvent.click(processButton);

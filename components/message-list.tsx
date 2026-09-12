@@ -35,10 +35,10 @@ export function MessageList({ messages, onCancel }: MessageListProps) {
               {message.status === "loading" ? (
                 <WorkflowProgress onCancel={onCancel} />
               ) : message.status === "complete" ? (
-                <AssistantReply
-                  text={message.text}
-                  durationMs={message.durationMs ?? 0}
-                />
+                <div className={styles.completedReply}>
+                  <WorkflowDisclosure durationMs={message.durationMs ?? 0} />
+                  <AssistantReply text={message.text} />
+                </div>
               ) : (
                 <p className={styles.messageText}>{message.text}</p>
               )}
@@ -52,14 +52,13 @@ export function MessageList({ messages, onCancel }: MessageListProps) {
   );
 }
 
-function AssistantReply({ text, durationMs }: { text: string; durationMs: number }) {
+function AssistantReply({ text }: { text: string }) {
   const [expanded, setExpanded] = useState(false);
   const preview = concisePreview(text);
   const hasDetails = preview !== text;
 
   return (
     <div className={styles.assistantBubble}>
-      <WorkflowDisclosure durationMs={durationMs} />
       <p className={styles.replyText}>{expanded ? text : preview}</p>
       {hasDetails ? (
         <button

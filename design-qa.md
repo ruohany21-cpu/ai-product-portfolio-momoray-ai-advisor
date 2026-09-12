@@ -52,11 +52,11 @@ No actionable P0, P1, or P2 visual differences remain. The visible differences f
 - Implementation: `http://localhost:3000/`, captured as 699 × 617 pixel inline browser artifacts at device scale factor 1 in both collapsed and expanded states.
 - State and normalization: the source is a larger annotated view and the implementation uses the compact responsive layout; comparison was normalized to the assistant-card content region and focused on information order, spacing, divider weight, muted color, and chevron affordance.
 - Real workflow evidence: submitting “给我推荐一个配置” returned a live Coze response and displayed the measured total as “用时 15 秒”.
-- Collapsed fidelity: the duration is a quiet, single-line row above the concise answer, with a subtle divider below it and a trailing chevron.
-- Expanded fidelity: activating the row rotates the chevron and reveals the observable stages above the final answer: “已提交问题”, “已运行 Coze Workflow”, and “已返回精简建议”. No hidden model reasoning or fabricated chain-of-thought is presented.
+- Collapsed fidelity: the duration is a quiet, borderless 11px row above and outside the concise-answer bubble, with a trailing chevron.
+- Expanded fidelity: activating the row rotates the chevron and reveals the observable stages outside the answer bubble: “已提交问题”, “已运行 Coze Workflow”, and “已返回精简建议”. No hidden model reasoning or fabricated chain-of-thought is presented.
 - Accessibility: the disclosure uses a native button, exposes `aria-expanded`, and changes its accessible name between “查看工作流过程” and “收起工作流过程”.
 - Responsive evidence: the compact browser viewport showed no clipping or horizontal overflow in either state.
 - Automated coverage: the duration formatter, DOM order, and disclosure state are covered with an 83-second simulated request, verifying “1 分 23 秒”, process-before-answer order, and expand/collapse semantics.
-- Comparison history: the earlier implementation placed the workflow disclosure below the final answer; the updated component moves it above the answer and relocates the divider to the bottom of the disclosure. Post-fix browser evidence shows the corrected hierarchy in both states with no P0, P1, or P2 mismatch.
+- Comparison history: the first implementation placed the disclosure below the final answer; the next moved it above but kept it inside the same bubble. The final component renders the disclosure and answer as separate sibling regions and reduces workflow metadata to 11px. Post-fix browser evidence shows the corrected hierarchy in both states with no P0, P1, or P2 mismatch.
 
 final result: passed
