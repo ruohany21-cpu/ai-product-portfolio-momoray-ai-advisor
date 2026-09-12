@@ -194,7 +194,12 @@ describe("ChatExperience", () => {
     const processButton = screen.getByRole("button", {
       name: "查看工作流过程，用时 1 分 23 秒",
     });
+    const reply = screen.getByText("建议先从基础高度开始。");
     expect(processButton).toHaveAttribute("aria-expanded", "false");
+    expect(
+      processButton.compareDocumentPosition(reply) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
     expect(screen.queryByText("已提交问题")).not.toBeInTheDocument();
 
     fireEvent.click(processButton);

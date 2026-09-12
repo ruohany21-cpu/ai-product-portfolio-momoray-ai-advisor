@@ -315,14 +315,14 @@
 }
 
 .workflowDisclosure {
-  margin-top: 2px;
-  border-top: 1px solid var(--border);
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--border);
 }
 
 .workflowDisclosure > button {
   width: 100%;
   min-height: 36px;
-  padding: 9px 0 0;
+  padding: 0 0 9px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -343,7 +343,7 @@
 }
 
 .workflowDetails {
-  padding: 8px 0 2px;
+  padding: 2px 0 12px;
   color: var(--text-muted);
   font-size: 12px;
 }

@@ -59,6 +59,7 @@ function AssistantReply({ text, durationMs }: { text: string; durationMs: number
 
   return (
     <div className={styles.assistantBubble}>
+      <WorkflowDisclosure durationMs={durationMs} />
       <p className={styles.replyText}>{expanded ? text : preview}</p>
       {hasDetails ? (
         <button
@@ -69,7 +70,6 @@ function AssistantReply({ text, durationMs }: { text: string; durationMs: number
           {expanded ? "收起完整建议" : "查看完整建议"}
         </button>
       ) : null}
-      <WorkflowDisclosure durationMs={durationMs} />
     </div>
   );
 }
