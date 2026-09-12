@@ -41,7 +41,10 @@ describe("POST /api/advisor", () => {
     expect(await response.json()).toEqual({ output: "建议先从中等高度开始。" });
     expect(JSON.parse(String(fetchMock.mock.calls[0][1]?.body))).toEqual({
       workflow_id: "7679774858637492267",
-      parameters: { input: "推荐一个配置" },
+      parameters: {
+        input:
+          "推荐一个配置\n\n[回复要求]\n请直接回答用户，不要复述分析过程或已确认信息。先用一句话给出结论，必要时补充不超过3条短建议。总长度控制在180个中文字符以内，避免大段文字。",
+      },
     });
   });
 

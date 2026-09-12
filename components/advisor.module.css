@@ -261,7 +261,9 @@
   background: var(--accent-soft);
 }
 
-.message p {
+.messageText,
+.assistantBubble,
+.workflowProgress {
   margin: 0;
   padding: 13px 15px;
   border: 1px solid var(--border);
@@ -272,21 +274,71 @@
   white-space: pre-wrap;
 }
 
-.message[data-role="user"] p {
+.message[data-role="user"] .messageText {
   border-color: var(--accent);
   border-radius: 16px 5px 16px 16px;
   color: white;
   background: var(--accent);
 }
 
-.message[data-status="loading"] p {
+.message[data-status="loading"] .workflowProgress {
   color: var(--text-muted);
 }
 
-.message[data-status="error"] p {
+.message[data-status="error"] .messageText,
+.message[data-status="cancelled"] .messageText {
   border-color: #f0c8c3;
   color: var(--danger);
   background: #fff8f7;
+}
+
+.assistantBubble {
+  display: grid;
+  gap: 10px;
+}
+
+.replyText,
+.workflowProgress p {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.detailsButton {
+  width: fit-content;
+  padding: 0;
+  border: 0;
+  color: var(--accent-strong);
+  background: transparent;
+  font-size: 12px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.workflowProgress {
+  display: grid;
+  gap: 10px;
+}
+
+.progressMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  color: var(--text-soft);
+  font-size: 11px;
+}
+
+.progressMeta button {
+  padding: 4px 7px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 0;
+  border-radius: 7px;
+  color: var(--text-muted);
+  background: var(--surface-muted);
+  font-size: 11px;
+  cursor: pointer;
 }
 
 .composerDock {

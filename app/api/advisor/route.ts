@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { CozeConfigurationError, runCozeWorkflow } from "@/lib/coze";
 
 const FAILURE_MESSAGE = "Workflow request failed. Please try again.";
+const CONCISE_REPLY_INSTRUCTION =
+  "[回复要求]\n请直接回答用户，不要复述分析过程或已确认信息。先用一句话给出结论，必要时补充不超过3条短建议。总长度控制在180个中文字符以内，避免大段文字。";
 
 export async function POST(request: Request) {
   let body: unknown;
@@ -18,7 +20,9 @@ export async function POST(request: Request) {
   }
 
   try {
-    const output = await runCozeWorkflow(input);
+    const output = await runCozeWorkflow(
+      `${input}\n\n${CONCISE_REPLY_INSTRUCTION}`,
+    );
     return NextResponse.json({ output });
   } catch (error) {
     if (error instanceof CozeConfigurationError) {

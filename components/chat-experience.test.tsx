@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { ChatExperience } from "./chat-experience";
@@ -12,6 +12,7 @@ const prompts = [
 
 describe("ChatExperience", () => {
   afterEach(() => {
+    vi.useRealTimers();
     vi.unstubAllGlobals();
   });
 
@@ -92,7 +93,7 @@ describe("ChatExperience", () => {
 
     await user.click(screen.getByRole("button", { name: "给我推荐一个配置" }));
 
-    expect(screen.getByText("Running workflow...")).toBeInTheDocument();
+    expect(screen.getByText("正在分析你的需求…")).toBeInTheDocument();
     expect(
       screen.getByRole("textbox", { name: "Ask MomoRay AI Advisor" }),
     ).toBeDisabled();
@@ -103,6 +104,68 @@ describe("ChatExperience", () => {
       new Response(JSON.stringify({ output: "从中等支撑开始。" }), { status: 200 }),
     );
     expect(await screen.findByText("从中等支撑开始。")).toBeInTheDocument();
+  });
+
+  test("keeps an overlong workflow response concise until details are requested", async () => {
+    const concise = "建议从 8cm 基础高度开始试睡，再根据颈部感受逐档调整。";
+    const full = `${concise}\n\n${"这里是更完整的判断依据和试睡说明。".repeat(18)}`;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        new Response(JSON.stringify({ output: full }), { status: 200 }),
+      ),
+    );
+    const user = userEvent.setup();
+    render(<ChatExperience />);
+
+    await user.click(screen.getByRole("button", { name: "给我推荐一个配置" }));
+
+    expect(await screen.findByText(concise)).toBeInTheDocument();
+    expect(screen.queryByText(full)).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "查看完整建议" }));
+    expect(
+      screen.getByText(
+        (_content, element) =>
+          element?.tagName === "P" && element.textContent === full,
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "收起完整建议" }),
+    ).toBeInTheDocument();
+  });
+
+  test("shows staged elapsed progress and lets the user cancel a slow workflow", async () => {
+    vi.useFakeTimers();
+    let requestSignal: AbortSignal | undefined;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((_url: RequestInfo | URL, init?: RequestInit) => {
+        requestSignal = init?.signal ?? undefined;
+        return new Promise<Response>((_resolve, reject) => {
+          requestSignal?.addEventListener("abort", () => {
+            reject(new DOMException("Aborted", "AbortError"));
+          });
+        });
+      }),
+    );
+    render(<ChatExperience />);
+
+    fireEvent.click(screen.getByRole("button", { name: "给我推荐一个配置" }));
+
+    expect(screen.getByText("正在分析你的需求…")).toBeInTheDocument();
+    expect(screen.getByText("已等待 0 秒")).toBeInTheDocument();
+    act(() => vi.advanceTimersByTime(20_000));
+    expect(screen.getByText("正在整理建议…")).toBeInTheDocument();
+    expect(screen.getByText("已等待 20 秒")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "取消请求" }));
+    await act(async () => Promise.resolve());
+
+    expect(requestSignal?.aborted).toBe(true);
+    expect(screen.getByText("已取消本次请求。")).toBeInTheDocument();
+    expect(
+      screen.getByRole("textbox", { name: "Ask MomoRay AI Advisor" }),
+    ).toBeEnabled();
   });
 
   test("does not submit empty input", async () => {

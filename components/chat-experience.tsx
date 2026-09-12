@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { ArrowCounterClockwise } from "@phosphor-icons/react";
 import { AdvisorShell } from "./advisor-shell";
 import styles from "./advisor.module.css";
@@ -9,11 +9,13 @@ import { MessageList, type ChatMessage } from "./message-list";
 import { PromptSuggestions } from "./prompt-suggestions";
 
 const FAILURE_MESSAGE = "Workflow request failed. Please try again.";
+const CANCELLED_MESSAGE = "已取消本次请求。";
 
 export function ChatExperience() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [draft, setDraft] = useState("");
   const [pending, setPending] = useState(false);
+  const activeRequest = useRef<AbortController | null>(null);
 
   const send = async (rawInput: string) => {
     const input = rawInput.trim();
@@ -21,6 +23,8 @@ export function ChatExperience() {
 
     const userId = crypto.randomUUID();
     const assistantId = crypto.randomUUID();
+    const controller = new AbortController();
+    activeRequest.current = controller;
     setPending(true);
     setDraft("");
     setMessages((current) => [
@@ -30,7 +34,7 @@ export function ChatExperience() {
         id: assistantId,
         role: "assistant",
         status: "loading",
-        text: "Running workflow...",
+        text: "正在分析你的需求…",
       },
     ]);
 
@@ -39,6 +43,7 @@ export function ChatExperience() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ input }),
+        signal: controller.signal,
       });
       const payload: unknown = await response.json();
       if (!response.ok || !hasOutput(payload)) {
@@ -49,17 +54,31 @@ export function ChatExperience() {
       );
     } catch {
       setMessages((current) =>
-        replaceAssistant(current, assistantId, FAILURE_MESSAGE, "error"),
+        replaceAssistant(
+          current,
+          assistantId,
+          controller.signal.aborted ? CANCELLED_MESSAGE : FAILURE_MESSAGE,
+          controller.signal.aborted ? "cancelled" : "error",
+        ),
       );
     } finally {
+      if (activeRequest.current === controller) {
+        activeRequest.current = null;
+      }
       setPending(false);
     }
   };
 
   const reset = () => {
+    activeRequest.current?.abort();
+    activeRequest.current = null;
     setMessages([]);
     setDraft("");
     setPending(false);
+  };
+
+  const cancel = () => {
+    activeRequest.current?.abort();
   };
 
   return (
@@ -82,7 +101,7 @@ export function ChatExperience() {
           </div>
         ) : (
           <div className={styles.conversation}>
-            <MessageList messages={messages} />
+            <MessageList messages={messages} onCancel={cancel} />
           </div>
         )}
         <div className={styles.composerDock}>
@@ -111,7 +130,7 @@ function replaceAssistant(
   messages: ChatMessage[],
   id: string,
   text: string,
-  status: "complete" | "error",
+  status: "complete" | "error" | "cancelled",
 ) {
   return messages.map((message): ChatMessage =>
     message.id === id ? { id, role: "assistant", status, text } : message,
