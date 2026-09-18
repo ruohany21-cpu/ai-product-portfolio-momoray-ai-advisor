@@ -12,13 +12,13 @@ A standalone portfolio demo that sends product questions to a published Coze Wor
 
 2. Copy `.env.example` to `.env.local`.
 
-3. In Coze, create an access token with the `run` permission and confirm that Workflow `7679774858637492267` is published.
+3. In Coze, create an access token with the `run` permission and confirm that Workflow `7684655278651277347` is published.
 
 4. Add the token to `.env.local`:
 
    ```env
    COZE_API_TOKEN=
-   COZE_WORKFLOW_ID=7679774858637492267
+   COZE_WORKFLOW_ID=7684655278651277347
    ```
 
    Do not add a `NEXT_PUBLIC_` prefix. Do not commit `.env.local`.
