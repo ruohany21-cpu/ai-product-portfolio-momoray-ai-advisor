@@ -41,9 +41,16 @@ describe("runCozeConversation", () => {
     expect(init?.headers).toEqual({ Authorization: "Bearer server-token", "Content-Type": "application/json" });
     expect(JSON.parse(String(init?.body))).toEqual({
       workflow_id: "7684655278651277347",
-      bot_id: "7686779008054607872",
-      additional_messages: [{ role: "user", content_type: "text", content: "可以调高度吗？" }],
-      parameters: {},
+      parameters: {
+        CONVERSATION_NAME: "Default",
+        USER_INPUT: "可以调高度吗？",
+        input: "",
+      },
+      additional_messages: [{
+        content: "可以调高度吗？",
+        content_type: "text",
+        role: "user",
+      }],
     });
   });
 

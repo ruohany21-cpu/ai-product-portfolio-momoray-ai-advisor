@@ -68,6 +68,11 @@ describe("ChatExperience", () => {
     expect(fetchMock.mock.calls[0][0]).toBe("https://api.coze.cn/v1/workflows/chat");
     expect(JSON.parse(String(fetchMock.mock.calls[0][1]?.body))).toMatchObject({
       workflow_id: expect.any(String),
+      parameters: {
+        CONVERSATION_NAME: "Default",
+        USER_INPUT: "这个枕头可以调高度吗？",
+        input: "",
+      },
       additional_messages: [{ content: "这个枕头可以调高度吗？" }],
     });
   });
@@ -105,6 +110,11 @@ describe("ChatExperience", () => {
     await screen.findByText("记得，建议偏高配置。");
 
     expect(JSON.parse(String(fetchMock.mock.calls[1][1]?.body))).toMatchObject({
+      parameters: {
+        CONVERSATION_NAME: "Default",
+        USER_INPUT: "你还记得吗？",
+        input: "",
+      },
       additional_messages: [{ content: "你还记得吗？" }],
       conversation_id: "conversation-1",
     });
@@ -320,6 +330,11 @@ describe("ChatExperience", () => {
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
 
     expect(JSON.parse(String(fetchMock.mock.calls[1][1]?.body))).toMatchObject({
+      parameters: {
+        CONVERSATION_NAME: "Default",
+        USER_INPUT: "这个枕头可以调高度吗？",
+        input: "",
+      },
       additional_messages: [{ content: "这个枕头可以调高度吗？" }],
     });
   });

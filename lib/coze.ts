@@ -44,14 +44,11 @@ export async function runCozeConversation(
   const workflowId =
     options.workflowId ?? process.env.NEXT_PUBLIC_COZE_WORKFLOW_ID;
 
-  const botId = options.botId ?? process.env.NEXT_PUBLIC_COZE_BOT_ID;
-
-
   const fetchImpl =
     options.fetchImpl ?? fetch;
 
 
-  if (!token || !workflowId || !botId) {
+  if (!token || !workflowId) {
     throw new CozeConfigurationError();
   }
 
@@ -61,13 +58,16 @@ export async function runCozeConversation(
    */
   const body = {
     workflow_id: workflowId,
-    bot_id: botId,
+    parameters: {
+      CONVERSATION_NAME: "Default",
+      USER_INPUT: input,
+      input: "",
+    },
     additional_messages: [{
-      role: "user",
-      content_type: "text",
       content: input,
+      content_type: "text",
+      role: "user",
     }],
-    parameters: {},
     ...(conversationId ? { conversation_id: conversationId } : {}),
   };
 
@@ -76,6 +76,7 @@ export async function runCozeConversation(
     const url = "https://api.coze.cn/v1/workflows/chat";
 
     console.info("[Coze] request", { url });
+    console.info("[Coze] request body", body);
 
     const response = await fetchImpl(
       url,
