@@ -73,9 +73,12 @@ export async function runCozeConversation(
 
 
   try {
+    const url = "https://api.coze.cn/v1/workflows/chat";
+
+    console.info("[Coze] request", { url });
 
     const response = await fetchImpl(
-      "https://api.coze.cn/v1/workflows/chat",
+      url,
       {
         method: "POST",
 
@@ -92,30 +95,25 @@ export async function runCozeConversation(
       }
     );
 
+    const responseText = await response.text();
+
+    console.error("[Coze] response", {
+      url,
+      status: response.status,
+      body: responseText,
+    });
+
 
     /**
      * 调试 Coze 返回错误
      */
     if (!response.ok) {
-
-      const errorText =
-        await response.text();
-
-
-      console.log(
-        "======== COZE API ERROR ========",
-        response.status,
-        errorText
-      );
-
-
       throw new CozeWorkflowError(
         `Coze API failed: ${response.status}`
       );
     }
 
 
-    const responseText = await response.text();
     const jsonResult = parseJsonResult(responseText);
     if (jsonResult) return jsonResult;
 
