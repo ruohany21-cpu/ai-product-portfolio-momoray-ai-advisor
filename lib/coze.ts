@@ -12,6 +12,11 @@ export type CozeConversationResult = {
   conversationId?: string;
 };
 
+console.log(
+  "Current workflow id:",
+  process.env.NEXT_PUBLIC_COZE_WORKFLOW_ID,
+);
+
 
 export class CozeWorkflowError extends Error {
   constructor(message = "Workflow request failed") {
