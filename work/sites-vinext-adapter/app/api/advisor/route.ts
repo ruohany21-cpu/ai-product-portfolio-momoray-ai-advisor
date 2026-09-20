@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
-import { CozeConfigurationError, runCozeConversation } from "@/lib/coze";
+import { CozeConfigurationError, runCozeWorkflow } from "@/lib/coze";
 
-export const runtime = "edge";
 const FAILURE_MESSAGE = "Workflow request failed. Please try again.";
 const CONCISE_REPLY_INSTRUCTION =
   "[回复要求]\n请直接回答用户，不要复述分析过程或已确认信息。先用一句话给出结论，必要时补充不超过3条短建议。总长度控制在180个中文字符以内，避免大段文字。";
@@ -21,15 +20,10 @@ export async function POST(request: Request) {
   }
 
   try {
-    const result = await runCozeConversation(
-  `${input}\n\n${CONCISE_REPLY_INSTRUCTION}`,
-  readConversationId(body),
-  {
-    token: process.env.COZE_API_TOKEN,
-    workflowId: process.env.COZE_WORKFLOW_ID,
-  }
-);
-    return NextResponse.json(result);
+    const output = await runCozeWorkflow(
+      `${input}\n\n${CONCISE_REPLY_INSTRUCTION}`,
+    );
+    return NextResponse.json({ output });
   } catch (error) {
     if (error instanceof CozeConfigurationError) {
       return failureResponse(500);
@@ -37,17 +31,6 @@ export async function POST(request: Request) {
 
     return failureResponse(502);
   }
-}
-
-function readConversationId(body: unknown): string | undefined {
-  if (!body || typeof body !== "object" || !("conversationId" in body)) {
-    return undefined;
-  }
-  return typeof body.conversationId === "string" &&
-    body.conversationId.length > 0 &&
-    body.conversationId.length <= 200
-    ? body.conversationId
-    : undefined;
 }
 
 function failureResponse(status: number) {

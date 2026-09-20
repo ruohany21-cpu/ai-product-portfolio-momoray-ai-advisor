@@ -43,7 +43,7 @@ describe("ChatExperience", () => {
     const fetchMock = vi.fn(async (...args: Parameters<typeof fetch>) => {
       void args;
       return new Response(
-        JSON.stringify({ output: "可以通过模块组合调节高度。", conversationId: "conversation-1" }),
+        JSON.stringify({ output: "可以通过模块组合调节高度。" }),
         { status: 200 },
       );
     });
@@ -66,7 +66,7 @@ describe("ChatExperience", () => {
 
   test("pressing Enter sends a typed question", async () => {
     const fetchMock = vi.fn(async () =>
-      new Response(JSON.stringify({ output: "先了解你的肩宽和睡姿。", conversationId: "conversation-1" }), {
+      new Response(JSON.stringify({ output: "先了解你的肩宽和睡姿。" }), {
         status: 200,
       }),
     );
@@ -79,27 +79,6 @@ describe("ChatExperience", () => {
 
     expect(await screen.findByText("先了解你的肩宽和睡姿。")).toBeInTheDocument();
     expect(fetchMock).toHaveBeenCalledTimes(1);
-  });
-
-  test("uses the returned conversation id for the next message", async () => {
-    const fetchMock = vi
-      .fn()
-      .mockResolvedValueOnce(new Response(JSON.stringify({ output: "你主要侧睡。", conversationId: "conversation-1" }), { status: 200 }))
-      .mockResolvedValueOnce(new Response(JSON.stringify({ output: "记得，建议偏高配置。", conversationId: "conversation-1" }), { status: 200 }));
-    vi.stubGlobal("fetch", fetchMock);
-    const user = userEvent.setup();
-    render(<ChatExperience />);
-
-    await user.click(screen.getByRole("button", { name: "我主要侧睡，肩比较宽，喜欢高一点" }));
-    await screen.findByText("你主要侧睡。");
-    const input = screen.getByRole("textbox", { name: "Ask MomoRay AI Advisor" });
-    await user.type(input, "你还记得吗？{enter}");
-    await screen.findByText("记得，建议偏高配置。");
-
-    expect(JSON.parse(String(fetchMock.mock.calls[1][1]?.body))).toEqual({
-      input: "你还记得吗？",
-      conversationId: "conversation-1",
-    });
   });
 
   test("shows loading and prevents another submission while pending", async () => {
@@ -122,7 +101,7 @@ describe("ChatExperience", () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
 
     resolveRequest(
-      new Response(JSON.stringify({ output: "从中等支撑开始。", conversationId: "conversation-1" }), { status: 200 }),
+      new Response(JSON.stringify({ output: "从中等支撑开始。" }), { status: 200 }),
     );
     expect(await screen.findByText("从中等支撑开始。")).toBeInTheDocument();
   });
@@ -133,7 +112,7 @@ describe("ChatExperience", () => {
     vi.stubGlobal(
       "fetch",
       vi.fn(async () =>
-        new Response(JSON.stringify({ output: full, conversationId: "conversation-1" }), { status: 200 }),
+        new Response(JSON.stringify({ output: full }), { status: 200 }),
       ),
     );
     const user = userEvent.setup();
@@ -206,7 +185,7 @@ describe("ChatExperience", () => {
     fireEvent.click(screen.getByRole("button", { name: "给我推荐一个配置" }));
     act(() => vi.advanceTimersByTime(83_000));
     resolveRequest(
-      new Response(JSON.stringify({ output: "建议先从基础高度开始。", conversationId: "conversation-1" }), {
+      new Response(JSON.stringify({ output: "建议先从基础高度开始。" }), {
         status: 200,
       }),
     );
@@ -275,7 +254,7 @@ describe("ChatExperience", () => {
     vi.stubGlobal(
       "fetch",
       vi.fn(async () =>
-        new Response(JSON.stringify({ output: "一个真实回复", conversationId: "conversation-1" }), { status: 200 }),
+        new Response(JSON.stringify({ output: "一个真实回复" }), { status: 200 }),
       ),
     );
     const user = userEvent.setup();
@@ -291,28 +270,5 @@ describe("ChatExperience", () => {
     expect(
       screen.getByRole("button", { name: "给我推荐一个配置" }),
     ).toBeInTheDocument();
-  });
-
-  test("new conversation starts without the previous Coze conversation id", async () => {
-    const fetchMock = vi.fn(async (...args: Parameters<typeof fetch>) => {
-      void args;
-      return new Response(
-        JSON.stringify({ output: "回复", conversationId: "conversation-1" }),
-        { status: 200 },
-      );
-    });
-    vi.stubGlobal("fetch", fetchMock);
-    const user = userEvent.setup();
-    render(<ChatExperience />);
-
-    await user.click(screen.getByRole("button", { name: "给我推荐一个配置" }));
-    await screen.findByText("回复");
-    await user.click(screen.getByRole("button", { name: "New conversation" }));
-    await user.click(screen.getByRole("button", { name: "这个枕头可以调高度吗？" }));
-    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
-
-    expect(JSON.parse(String(fetchMock.mock.calls[1][1]?.body))).toEqual({
-      input: "这个枕头可以调高度吗？",
-    });
   });
 });

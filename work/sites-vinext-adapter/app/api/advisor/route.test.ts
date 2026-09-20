@@ -4,18 +4,6 @@ import { POST } from "./route";
 const endpoint = "http://localhost/api/advisor";
 const failure = { error: "Workflow request failed. Please try again." };
 
-function dialogueResponse(output: string, conversationId = "conversation-1") {
-  return new Response(
-    [
-      `event: conversation.chat.created\ndata: ${JSON.stringify({ conversation_id: conversationId })}`,
-      `event: conversation.message.completed\ndata: ${JSON.stringify({ conversation_id: conversationId, role: "assistant", type: "answer", content: output })}`,
-      "event: done\ndata: {}",
-      "",
-    ].join("\n\n"),
-    { status: 200, headers: { "Content-Type": "text/event-stream" } },
-  );
-}
-
 function advisorRequest(body: string) {
   return new Request(endpoint, {
     method: "POST",
@@ -30,13 +18,18 @@ describe("POST /api/advisor", () => {
     vi.unstubAllGlobals();
   });
 
-  test("trims input and returns the dialogue output with its conversation id", async () => {
+  test("trims input and returns the normalized workflow output", async () => {
     vi.stubEnv("COZE_API_TOKEN", "server-token");
     vi.stubEnv("COZE_WORKFLOW_ID", "7679774858637492267");
-    vi.stubEnv("COZE_BOT_ID", "7686779008054607872");
     const fetchMock = vi.fn(async (...args: Parameters<typeof fetch>) => {
       void args;
-      return dialogueResponse("建议先从中等高度开始。");
+      return new Response(
+        JSON.stringify({
+          code: 0,
+          data: JSON.stringify({ output: "建议先从中等高度开始。" }),
+        }),
+        { status: 200 },
+      );
     });
     vi.stubGlobal("fetch", fetchMock);
 
@@ -45,37 +38,14 @@ describe("POST /api/advisor", () => {
     );
 
     expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({
-      output: "建议先从中等高度开始。",
-      conversationId: "conversation-1",
-    });
+    expect(await response.json()).toEqual({ output: "建议先从中等高度开始。" });
     expect(JSON.parse(String(fetchMock.mock.calls[0][1]?.body))).toEqual({
       workflow_id: "7679774858637492267",
-      bot_id: "7686779008054607872",
-      additional_messages: [{
-        role: "user",
-        content_type: "text",
-        content:
+      parameters: {
+        input:
           "推荐一个配置\n\n[回复要求]\n请直接回答用户，不要复述分析过程或已确认信息。先用一句话给出结论，必要时补充不超过3条短建议。总长度控制在180个中文字符以内，避免大段文字。",
-      }],
-      parameters: {},
+      },
     });
-  });
-
-  test("forwards a valid conversation id to continue the dialogue", async () => {
-    vi.stubEnv("COZE_API_TOKEN", "server-token");
-    vi.stubEnv("COZE_WORKFLOW_ID", "7684655278651277347");
-    vi.stubEnv("COZE_BOT_ID", "7686779008054607872");
-    const fetchMock = vi.fn(async (...args: Parameters<typeof fetch>) => {
-      void args;
-      return dialogueResponse("继续回答", "conversation-9");
-    });
-    vi.stubGlobal("fetch", fetchMock);
-
-    const response = await POST(advisorRequest(JSON.stringify({ input: "继续", conversationId: "conversation-9" })));
-
-    expect(response.status).toBe(200);
-    expect(JSON.parse(String(fetchMock.mock.calls[0][1]?.body))).toMatchObject({ conversation_id: "conversation-9" });
   });
 
   test.each([
@@ -94,7 +64,6 @@ describe("POST /api/advisor", () => {
   test("returns 500 when server configuration is missing", async () => {
     vi.stubEnv("COZE_API_TOKEN", "");
     vi.stubEnv("COZE_WORKFLOW_ID", "");
-    vi.stubEnv("COZE_BOT_ID", "");
 
     const response = await POST(
       advisorRequest(JSON.stringify({ input: "这个枕头可以调高度吗？" })),
@@ -107,7 +76,6 @@ describe("POST /api/advisor", () => {
   test("returns a secret-free 502 when Coze rejects the request", async () => {
     vi.stubEnv("COZE_API_TOKEN", "super-secret-token");
     vi.stubEnv("COZE_WORKFLOW_ID", "7679774858637492267");
-    vi.stubEnv("COZE_BOT_ID", "7686779008054607872");
     vi.stubGlobal(
       "fetch",
       vi.fn(async () =>

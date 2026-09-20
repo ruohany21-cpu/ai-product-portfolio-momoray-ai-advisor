@@ -19,6 +19,7 @@ A standalone portfolio demo that sends product questions to a published Coze Wor
    ```env
    COZE_API_TOKEN=
    COZE_WORKFLOW_ID=7684655278651277347
+   COZE_BOT_ID=7686779008054607872
    ```
 
    Do not add a `NEXT_PUBLIC_` prefix. Do not commit `.env.local`.

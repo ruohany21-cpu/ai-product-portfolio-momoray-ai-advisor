@@ -5,21 +5,20 @@ export type CozeClientOptions = {
   signal?: AbortSignal;
 };
 
-type SuccessfulCozePayload = {
-  code: 0;
-  data: string;
+
+export type CozeConversationResult = {
+  output: string;
+  conversationId?: string;
 };
 
-type WorkflowOutput = {
-  output: string;
-};
 
 export class CozeWorkflowError extends Error {
-  constructor() {
-    super("Workflow request failed");
+  constructor(message = "Workflow request failed") {
+    super(message);
     this.name = "CozeWorkflowError";
   }
 }
+
 
 export class CozeConfigurationError extends Error {
   constructor() {
@@ -28,71 +27,173 @@ export class CozeConfigurationError extends Error {
   }
 }
 
-export async function runCozeWorkflow(
+
+/**
+ * 调用 Coze Workflow
+ */
+export async function runCozeConversation(
   input: string,
-  options: CozeClientOptions = {},
-): Promise<string> {
-  const token = options.token ?? process.env.COZE_API_TOKEN;
-  const workflowId = options.workflowId ?? process.env.COZE_WORKFLOW_ID;
-  const fetchImpl = options.fetchImpl ?? fetch;
+  conversationId?: string,
+  options: CozeClientOptions = {}
+): Promise<CozeConversationResult> {
+
+  const token =
+    options.token ?? process.env.COZE_API_TOKEN;
+
+  const workflowId =
+    options.workflowId ?? process.env.COZE_WORKFLOW_ID;
+
+
+  const fetchImpl =
+    options.fetchImpl ?? fetch;
+
 
   if (!token || !workflowId) {
     throw new CozeConfigurationError();
   }
 
+
+  /**
+   * Coze Workflow API 参数
+   */
+  const body = {
+    workflow_id: workflowId,
+
+    parameters: {
+      input: input,
+    },
+
+    ...(conversationId
+      ? {
+          conversation_id: conversationId,
+        }
+      : {}),
+  };
+
+
   try {
-    const response = await fetchImpl("https://api.coze.cn/v1/workflow/run", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        workflow_id: workflowId,
-        parameters: { input },
-      }),
-      signal: options.signal ?? AbortSignal.timeout(60_000),
-    });
 
+    const response = await fetchImpl(
+      "https://api.coze.cn/v1/workflow/run",
+      {
+        method: "POST",
+
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+
+        body: JSON.stringify(body),
+
+        signal:
+          options.signal ??
+          AbortSignal.timeout(90000),
+      }
+    );
+
+
+    /**
+     * 调试 Coze 返回错误
+     */
     if (!response.ok) {
-      throw new CozeWorkflowError();
+
+      const errorText =
+        await response.text();
+
+
+      console.log(
+        "======== COZE API ERROR ========",
+        response.status,
+        errorText
+      );
+
+
+      throw new CozeWorkflowError(
+        `Coze API failed: ${response.status}`
+      );
     }
 
-    const payload: unknown = await response.json();
-    if (!isSuccessfulCozePayload(payload)) {
-      throw new CozeWorkflowError();
+
+    const data =
+      await response.json();
+
+
+    console.log(
+      "======== COZE SUCCESS ========",
+      JSON.stringify(data)
+    );
+
+
+    /**
+     * Workflow 返回结构：
+     *
+     * data:
+     * {
+     *   output:"xxx"
+     * }
+     *
+     */
+
+
+    const output =
+      data?.data?.output ??
+      data?.output ??
+      "";
+
+
+    const conversation =
+      data?.data?.conversation_id ??
+      data?.conversation_id;
+
+
+    if (!output) {
+
+      throw new CozeWorkflowError(
+        "Coze returned empty output"
+      );
+
     }
 
-    const data: unknown = JSON.parse(payload.data);
-    if (!hasWorkflowOutput(data)) {
-      throw new CozeWorkflowError();
+
+    return {
+
+      output:
+        typeof output === "string"
+          ? output
+          : JSON.stringify(output),
+
+      conversationId:
+        typeof conversation === "string"
+          ? conversation
+          : undefined,
+    };
+
+
+  } catch(error) {
+
+
+    if (
+      error instanceof CozeConfigurationError
+    ) {
+      throw error;
     }
 
-    return data.output;
-  } catch {
+
+    if (
+      error instanceof CozeWorkflowError
+    ) {
+      throw error;
+    }
+
+
+    console.log(
+      "======== COZE UNKNOWN ERROR ========",
+      error
+    );
+
+
     throw new CozeWorkflowError();
+
   }
-}
 
-function isSuccessfulCozePayload(
-  payload: unknown,
-): payload is SuccessfulCozePayload {
-  return (
-    typeof payload === "object" &&
-    payload !== null &&
-    "code" in payload &&
-    payload.code === 0 &&
-    "data" in payload &&
-    typeof payload.data === "string"
-  );
-}
-
-function hasWorkflowOutput(data: unknown): data is WorkflowOutput {
-  return (
-    typeof data === "object" &&
-    data !== null &&
-    "output" in data &&
-    typeof data.output === "string" &&
-    data.output.trim().length > 0
-  );
 }

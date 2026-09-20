@@ -2,127 +2,106 @@ import { afterEach, describe, expect, test, vi } from "vitest";
 import {
   CozeConfigurationError,
   CozeWorkflowError,
-  runCozeWorkflow,
+  runCozeConversation,
 } from "./coze";
 
-describe("runCozeWorkflow", () => {
-  afterEach(() => {
-    vi.unstubAllEnvs();
+function sseResponse(events: Array<[string, unknown]>) {
+  const body = events
+    .map(([event, data]) => `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`)
+    .join("");
+  return new Response(body, {
+    status: 200,
+    headers: { "Content-Type": "text/event-stream" },
   });
+}
 
-  test("posts the documented payload and returns data.output", async () => {
+describe("runCozeConversation", () => {
+  afterEach(() => vi.unstubAllEnvs());
+
+  test("starts a dialogue flow and returns its answer and conversation id", async () => {
     const fetchImpl = vi.fn(async (...args: Parameters<typeof fetch>) => {
       void args;
-      return new Response(
-        JSON.stringify({
-          code: 0,
-          msg: "Success",
-          data: JSON.stringify({ output: "可以，通过增减模块调节高度。" }),
-        }),
-        { status: 200 },
-      );
+      return sseResponse([
+        ["conversation.chat.created", { id: "chat-1", conversation_id: "conversation-1", status: "created" }],
+        ["conversation.message.completed", { id: "message-1", conversation_id: "conversation-1", role: "assistant", type: "answer", content_type: "text", content: "可以，通过增减模块调节高度。" }],
+        ["done", { debug_url: "https://www.coze.cn/work_flow?execute_id=1" }],
+      ]);
     });
 
-    const output = await runCozeWorkflow("可以调高度吗？", {
+    const result = await runCozeConversation("可以调高度吗？", undefined, {
       token: "server-token",
-      workflowId: "7679774858637492267",
+      workflowId: "7684655278651277347",
+      botId: "7686779008054607872",
       fetchImpl,
     });
 
-    expect(output).toBe("可以，通过增减模块调节高度。");
-    expect(fetchImpl).toHaveBeenCalledTimes(1);
+    expect(result).toEqual({ output: "可以，通过增减模块调节高度。", conversationId: "conversation-1" });
     const [url, init] = fetchImpl.mock.calls[0];
-    expect(url).toBe("https://api.coze.cn/v1/workflow/run");
-    expect(init?.method).toBe("POST");
-    expect(init?.headers).toEqual({
-      Authorization: "Bearer server-token",
-      "Content-Type": "application/json",
-    });
+    expect(url).toBe("https://api.coze.cn/v1/workflows/chat");
+    expect(init?.headers).toEqual({ Authorization: "Bearer server-token", "Content-Type": "application/json" });
     expect(JSON.parse(String(init?.body))).toEqual({
-      workflow_id: "7679774858637492267",
-      parameters: { input: "可以调高度吗？" },
+      workflow_id: "7684655278651277347",
+      bot_id: "7686779008054607872",
+      additional_messages: [{ role: "user", content_type: "text", content: "可以调高度吗？" }],
+      parameters: {},
     });
-    expect(init?.signal).toBeInstanceOf(AbortSignal);
   });
 
-  test("reads credentials from server environment by default", async () => {
-    vi.stubEnv("COZE_API_TOKEN", "environment-token");
-    vi.stubEnv("COZE_WORKFLOW_ID", "7679774858637492267");
+  test("continues the same Coze conversation when an id is supplied", async () => {
     const fetchImpl = vi.fn(async (...args: Parameters<typeof fetch>) => {
       void args;
-      return new Response(
-        JSON.stringify({ code: 0, data: JSON.stringify({ output: "环境变量可用" }) }),
-        { status: 200 },
-      );
+      return sseResponse([
+        ["conversation.message.completed", { conversation_id: "conversation-1", role: "assistant", type: "answer", content: "记得，你主要侧睡。" }],
+        ["done", {}],
+      ]);
     });
 
-    await expect(runCozeWorkflow("question", { fetchImpl })).resolves.toBe(
-      "环境变量可用",
+    await runCozeConversation("你记得我的睡姿吗？", "conversation-1", {
+      token: "server-token",
+      workflowId: "7684655278651277347",
+      botId: "7686779008054607872",
+      fetchImpl,
+    });
+
+    expect(JSON.parse(String(fetchImpl.mock.calls[0][1]?.body))).toMatchObject({ conversation_id: "conversation-1" });
+  });
+
+  test("reads all server credentials from the environment", async () => {
+    vi.stubEnv("COZE_API_TOKEN", "environment-token");
+    vi.stubEnv("COZE_WORKFLOW_ID", "7684655278651277347");
+    vi.stubEnv("COZE_BOT_ID", "7686779008054607872");
+    const fetchImpl = vi.fn(async () =>
+      sseResponse([
+        ["conversation.message.completed", { conversation_id: "conversation-2", role: "assistant", type: "answer", content: "环境变量可用" }],
+        ["done", {}],
+      ]),
     );
-    expect(fetchImpl.mock.calls[0][1]?.headers).toEqual({
-      Authorization: "Bearer environment-token",
-      "Content-Type": "application/json",
+
+    await expect(runCozeConversation("question", undefined, { fetchImpl })).resolves.toEqual({
+      output: "环境变量可用",
+      conversationId: "conversation-2",
     });
   });
 
   test.each([
     ["HTTP failure", new Response("upstream unavailable", { status: 503 })],
-    [
-      "business failure",
-      new Response(
-        JSON.stringify({ code: 4000, msg: "bad request", data: "" }),
-        { status: 200 },
-      ),
-    ],
-    [
-      "invalid data JSON",
-      new Response(JSON.stringify({ code: 0, data: "not-json" }), {
-        status: 200,
-      }),
-    ],
-    [
-      "missing output",
-      new Response(
-        JSON.stringify({ code: 0, data: JSON.stringify({}) }),
-        { status: 200 },
-      ),
-    ],
-    [
-      "empty output",
-      new Response(
-        JSON.stringify({ code: 0, data: JSON.stringify({ output: "" }) }),
-        { status: 200 },
-      ),
-    ],
+    ["error event", sseResponse([["error", { code: 4000, msg: "bad request" }]])],
+    ["failed chat", sseResponse([["conversation.chat.failed", { last_error: { code: 4000, msg: "bad" } }]])],
+    ["missing answer", sseResponse([["done", {}]])],
   ])("normalizes %s", async (_name, response) => {
-    const fetchImpl = vi.fn(async () => response);
-
     await expect(
-      runCozeWorkflow("question", {
+      runCozeConversation("question", undefined, {
         token: "server-token",
-        workflowId: "7679774858637492267",
-        fetchImpl,
+        workflowId: "7684655278651277347",
+        botId: "7686779008054607872",
+        fetchImpl: vi.fn(async () => response),
       }),
     ).rejects.toBeInstanceOf(CozeWorkflowError);
   });
 
-  test("normalizes a network rejection", async () => {
-    const fetchImpl = vi.fn(async () => {
-      throw new Error("network details must stay server-side");
-    });
-
-    await expect(
-      runCozeWorkflow("question", {
-        token: "server-token",
-        workflowId: "7679774858637492267",
-        fetchImpl,
-      }),
-    ).rejects.toEqual(new CozeWorkflowError());
-  });
-
   test("rejects missing server configuration separately", async () => {
     await expect(
-      runCozeWorkflow("question", { token: "", workflowId: "" }),
+      runCozeConversation("question", undefined, { token: "", workflowId: "", botId: "" }),
     ).rejects.toBeInstanceOf(CozeConfigurationError);
   });
 });

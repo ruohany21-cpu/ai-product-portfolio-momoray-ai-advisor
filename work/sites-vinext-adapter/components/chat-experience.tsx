@@ -15,7 +15,6 @@ export function ChatExperience() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [draft, setDraft] = useState("");
   const [pending, setPending] = useState(false);
-  const conversationId = useRef<string | null>(null);
   const activeRequest = useRef<AbortController | null>(null);
 
   const send = async (rawInput: string) => {
@@ -44,19 +43,13 @@ export function ChatExperience() {
       const response = await fetch("/api/advisor", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          input,
-          ...(conversationId.current
-            ? { conversationId: conversationId.current }
-            : {}),
-        }),
+        body: JSON.stringify({ input }),
         signal: controller.signal,
       });
       const payload: unknown = await response.json();
       if (!response.ok || !hasOutput(payload)) {
         throw new Error("Invalid advisor response");
       }
-      conversationId.current = payload.conversationId;
       setMessages((current) =>
         replaceAssistant(
           current,
@@ -89,7 +82,6 @@ export function ChatExperience() {
     setMessages([]);
     setDraft("");
     setPending(false);
-    conversationId.current = null;
   };
 
   const cancel = () => {
@@ -132,16 +124,12 @@ export function ChatExperience() {
   );
 }
 
-function hasOutput(
-  payload: unknown,
-): payload is { output: string; conversationId: string } {
+function hasOutput(payload: unknown): payload is { output: string } {
   return (
     typeof payload === "object" &&
     payload !== null &&
     "output" in payload &&
-    typeof payload.output === "string" &&
-    "conversationId" in payload &&
-    typeof payload.conversationId === "string"
+    typeof payload.output === "string"
   );
 }
 
