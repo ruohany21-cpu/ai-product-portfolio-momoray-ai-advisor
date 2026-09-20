@@ -1,6 +1,6 @@
 # MomoRay AI Advisor
 
-A standalone portfolio demo that sends product questions to a published Coze Workflow through a server-only Next.js API Route.
+A standalone portfolio demo that sends product questions to a published Coze Workflow directly from the browser for Cloudflare Pages static hosting.
 
 ## Local setup
 
@@ -43,6 +43,6 @@ npm run build
 
 ## Deployment
 
-Deploy as a Next.js application. Add `COZE_API_TOKEN` and `COZE_WORKFLOW_ID` to the hosting platform's server-side environment variables. The browser only calls `/api/advisor`; it never receives the Coze token.
+For Cloudflare Pages, use the `Next.js (Static HTML Export)` preset and set `NEXT_PUBLIC_COZE_API_TOKEN` and `NEXT_PUBLIC_COZE_WORKFLOW_ID` as environment variables. The browser calls Coze directly, so the token is necessarily exposed to visitors; use a restricted, workflow-only token.
 
 Coze API reference: <https://docs.coze.cn/developer_guides_workflow_run>

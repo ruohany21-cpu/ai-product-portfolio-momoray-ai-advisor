@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, describe, expect, test, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { ChatExperience } from "./chat-experience";
 
 const prompts = [
@@ -11,6 +11,12 @@ const prompts = [
 ];
 
 describe("ChatExperience", () => {
+  beforeEach(() => {
+    vi.stubEnv("NEXT_PUBLIC_COZE_API_TOKEN", "test-token");
+    vi.stubEnv("NEXT_PUBLIC_COZE_WORKFLOW_ID", "test-workflow");
+    vi.stubEnv("NEXT_PUBLIC_COZE_BOT_ID", "test-bot");
+  });
+
   afterEach(() => {
     vi.useRealTimers();
     vi.unstubAllGlobals();
@@ -59,8 +65,10 @@ describe("ChatExperience", () => {
       await screen.findByText("可以通过模块组合调节高度。"),
     ).toBeInTheDocument();
     expect(screen.getByText("这个枕头可以调高度吗？")).toBeInTheDocument();
-    expect(JSON.parse(String(fetchMock.mock.calls[0][1]?.body))).toEqual({
-      input: "这个枕头可以调高度吗？",
+    expect(fetchMock.mock.calls[0][0]).toBe("https://api.coze.cn/v1/workflows/chat");
+    expect(JSON.parse(String(fetchMock.mock.calls[0][1]?.body))).toMatchObject({
+      workflow_id: expect.any(String),
+      additional_messages: [{ content: "这个枕头可以调高度吗？" }],
     });
   });
 
@@ -96,9 +104,9 @@ describe("ChatExperience", () => {
     await user.type(input, "你还记得吗？{enter}");
     await screen.findByText("记得，建议偏高配置。");
 
-    expect(JSON.parse(String(fetchMock.mock.calls[1][1]?.body))).toEqual({
-      input: "你还记得吗？",
-      conversationId: "conversation-1",
+    expect(JSON.parse(String(fetchMock.mock.calls[1][1]?.body))).toMatchObject({
+      additional_messages: [{ content: "你还记得吗？" }],
+      conversation_id: "conversation-1",
     });
   });
 
@@ -311,8 +319,8 @@ describe("ChatExperience", () => {
     await user.click(screen.getByRole("button", { name: "这个枕头可以调高度吗？" }));
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
 
-    expect(JSON.parse(String(fetchMock.mock.calls[1][1]?.body))).toEqual({
-      input: "这个枕头可以调高度吗？",
+    expect(JSON.parse(String(fetchMock.mock.calls[1][1]?.body))).toMatchObject({
+      additional_messages: [{ content: "这个枕头可以调高度吗？" }],
     });
   });
 });

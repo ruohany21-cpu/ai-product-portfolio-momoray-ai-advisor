@@ -67,9 +67,9 @@ describe("runCozeConversation", () => {
   });
 
   test("reads all server credentials from the environment", async () => {
-    vi.stubEnv("COZE_API_TOKEN", "environment-token");
-    vi.stubEnv("COZE_WORKFLOW_ID", "7684655278651277347");
-    vi.stubEnv("COZE_BOT_ID", "7686779008054607872");
+    vi.stubEnv("NEXT_PUBLIC_COZE_API_TOKEN", "environment-token");
+    vi.stubEnv("NEXT_PUBLIC_COZE_WORKFLOW_ID", "7684655278651277347");
+    vi.stubEnv("NEXT_PUBLIC_COZE_BOT_ID", "7686779008054607872");
     const fetchImpl = vi.fn(async () =>
       sseResponse([
         ["conversation.message.completed", { conversation_id: "conversation-2", role: "assistant", type: "answer", content: "环境变量可用" }],

@@ -7,6 +7,7 @@ import styles from "./advisor.module.css";
 import { MessageComposer } from "./message-composer";
 import { MessageList, type ChatMessage } from "./message-list";
 import { PromptSuggestions } from "./prompt-suggestions";
+import { runCozeConversation } from "@/lib/coze";
 
 const FAILURE_MESSAGE = "Workflow request failed. Please try again.";
 const CANCELLED_MESSAGE = "已取消本次请求。";
@@ -41,22 +42,12 @@ export function ChatExperience() {
     ]);
 
     try {
-      const response = await fetch("/api/advisor", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          input,
-          ...(conversationId.current
-            ? { conversationId: conversationId.current }
-            : {}),
-        }),
-        signal: controller.signal,
-      });
-      const payload: unknown = await response.json();
-      if (!response.ok || !hasOutput(payload)) {
-        throw new Error("Invalid advisor response");
-      }
-      conversationId.current = payload.conversationId;
+      const payload = await runCozeConversation(
+        input,
+        conversationId.current ?? undefined,
+        { signal: controller.signal },
+      );
+      conversationId.current = payload.conversationId ?? null;
       setMessages((current) =>
         replaceAssistant(
           current,
@@ -129,19 +120,6 @@ export function ChatExperience() {
         </div>
       </section>
     </AdvisorShell>
-  );
-}
-
-function hasOutput(
-  payload: unknown,
-): payload is { output: string; conversationId: string } {
-  return (
-    typeof payload === "object" &&
-    payload !== null &&
-    "output" in payload &&
-    typeof payload.output === "string" &&
-    "conversationId" in payload &&
-    typeof payload.conversationId === "string"
   );
 }
 
