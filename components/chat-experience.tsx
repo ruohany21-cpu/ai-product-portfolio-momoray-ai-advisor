@@ -101,7 +101,7 @@ export function ChatExperience() {
         {messages.length === 0 ? (
           <div className={styles.welcomeStage}>
             <p className={styles.eyebrow}>MOMORAY SLEEP ADVISOR</p>
-            <h2 className={styles.heroTitle}>你的 MomoRay AI 产品顾问</h2>
+            <h2 className={styles.heroTitle}>你的MomoRay AI售前顾问</h2>
             <p className={styles.welcomeCopy}>
               关于 MomoRay 产品、配置与使用的问题，都可以咨询。
             </p>

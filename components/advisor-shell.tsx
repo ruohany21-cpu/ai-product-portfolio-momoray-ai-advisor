@@ -30,7 +30,7 @@ export function AdvisorShell({ children, onReset }: AdvisorShellProps) {
           <div className={styles.sidebarCard}>
             <ChatCircleDots size={20} aria-hidden="true" />
             <div>
-              <strong>智能睡眠顾问</strong>
+              <strong>智能售前顾问</strong>
               <span>模块化支撑方案</span>
             </div>
           </div>
