@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { ArrowCounterClockwise } from "@phosphor-icons/react";
+import { ArrowCounterClockwise, CheckCircle, Cube, MoonStars, Sparkle } from "@phosphor-icons/react";
 import { AdvisorShell } from "./advisor-shell";
 import styles from "./advisor.module.css";
 import { MessageComposer } from "./message-composer";
@@ -100,9 +100,36 @@ export function ChatExperience() {
         </button>
         {messages.length === 0 ? (
           <div className={styles.welcomeStage}>
-            <p className={styles.eyebrow}>MOMORAY PRODUCT GUIDANCE</p>
-            <h2 className={styles.heroTitle}>你的 MomoRay AI 产品顾问</h2>
-            <p className={styles.welcomeCopy}>Ask the workflow anything.</p>
+            <div className={styles.heroPanel}>
+              <div className={styles.heroCopy}>
+                <p className={styles.eyebrow}>MOMORAY SLEEP INTELLIGENCE</p>
+                <h2 className={styles.heroTitle}>你的智能睡眠产品顾问</h2>
+                <p className={styles.welcomeCopy}>
+                  基于 MomoRay 模块化枕头知识库，<br />
+                  帮助你找到适合自己的支撑方案。
+                </p>
+                <div className={styles.heroSignals}>
+                  <span><CheckCircle size={16} weight="fill" />个性化建议</span>
+                  <span><MoonStars size={16} weight="fill" />睡姿适配</span>
+                </div>
+              </div>
+              <div className={styles.productDisplay} aria-label="MomoRay 模块化枕头产品结构">
+                <div className={styles.productGlow} />
+                <div className={styles.pillowCard}>
+                  <div className={styles.pillowHeader}>
+                    <span className={styles.pillowIcon}><Sparkle size={15} weight="fill" /></span>
+                    <span>MomoRay</span>
+                    <span className={styles.pillowStatus}>MODULAR</span>
+                  </div>
+                  <div className={styles.pillowStack}>
+                    <span className={styles.stackLayer}>柔软释压层</span>
+                    <span className={styles.stackLayer}>高度支撑层</span>
+                    <span className={styles.stackLayer}>稳定承托层</span>
+                  </div>
+                  <div className={styles.pillowFooter}><Cube size={16} /> 可调节结构</div>
+                </div>
+              </div>
+            </div>
             <PromptSuggestions disabled={pending} onSelect={send} />
           </div>
         ) : (

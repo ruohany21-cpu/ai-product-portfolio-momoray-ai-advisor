@@ -22,22 +22,22 @@ export function AdvisorShell({ children, onReset }: AdvisorShellProps) {
 
         <button className={styles.newChatButton} type="button" onClick={onReset}>
           <Plus size={18} weight="bold" aria-hidden="true" />
-          New conversation
+          新建对话
         </button>
 
         <div className={styles.sidebarSection}>
-          <span className={styles.sidebarLabel}>WORKFLOW DEMO</span>
+          <span className={styles.sidebarLabel}>MOMORAY SLEEP SYSTEM</span>
           <div className={styles.sidebarCard}>
             <ChatCircleDots size={20} aria-hidden="true" />
             <div>
-              <strong>Sales advisor</strong>
-              <span>Coze workflow</span>
+              <strong>智能睡眠顾问</strong>
+              <span>模块化支撑方案</span>
             </div>
           </div>
         </div>
 
         <p className={styles.sidebarNote}>
-          Product guidance based on a live MomoRay workflow.
+          从睡姿、肩宽和偏好出发，找到更适合你的睡眠支撑。
         </p>
       </nav>
 

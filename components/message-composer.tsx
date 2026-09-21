@@ -35,7 +35,7 @@ export function MessageComposer({
         maxLength={2_000}
         onChange={(event) => onChange(event.target.value)}
         onKeyDown={submitWithEnter}
-        placeholder="Ask MomoRay AI Advisor"
+        placeholder="告诉我你的睡姿与支撑需求…"
         rows={1}
         value={value}
       />

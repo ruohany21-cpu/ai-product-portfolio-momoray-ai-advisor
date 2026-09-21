@@ -1,8 +1,8 @@
 export const suggestedPrompts = [
-  "这个枕头可以调高度吗？",
-  "我主要侧睡，肩比较宽，喜欢高一点",
-  "给我推荐一个配置",
-  "我最近脖子一直痛，是不是颈椎病？",
+  "如何调节枕头高度？",
+  "我是侧睡，帮我推荐配置",
+  "不同睡姿怎么选择？",
+  "了解 MomoRay 产品结构",
 ] as const;
 
 type PromptSuggestionsProps = {

@@ -5,12 +5,12 @@ export function AdvisorHeader() {
   return (
     <header className={styles.header}>
       <div>
-        <h1 className={styles.productName}>MomoRay AI Advisor</h1>
-        <p className={styles.productMeta}>Agent Workflow Demo</p>
+        <h1 className={styles.productName}>MomoRay 智能睡眠顾问</h1>
+        <p className={styles.productMeta}>Modular sleep support, made personal</p>
       </div>
       <div className={styles.liveBadge} aria-label="Workflow live">
         <Pulse size={15} weight="bold" aria-hidden="true" />
-        <span>LIVE</span>
+        <span>在线服务</span>
       </div>
     </header>
   );
